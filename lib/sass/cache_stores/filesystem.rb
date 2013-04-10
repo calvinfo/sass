@@ -18,13 +18,13 @@ module Sass
       def _retrieve(key, version, sha)
         return unless File.readable?(path_to(key))
         File.open(path_to(key), "rb") do |f|
-          f.lock(File::LOCK_SH)
+          f.flock(File::LOCK_SH)
           if f.readline("\n").strip == version && f.readline("\n").strip == sha
             read = f.read
-            f.lock(FILE::LOCK_UN)
+            f.flock(File::LOCK_UN)
             return read
           end
-          f.lock(FILE::LOCK_UN)
+          f.flock(File::LOCK_UN)
         end
         File.unlink path_to(key)
         nil
@@ -41,11 +41,11 @@ module Sass
         # return if File.exists?(compiled_filename) && !File.writable?(compiled_filename)
         FileUtils.mkdir_p(File.dirname(compiled_filename))
         File.open(compiled_filename, File::RDWR|File::CREAT) do |f|
-          f.lock(File::LOCK_EX)
+          f.flock(File::LOCK_EX)
           f.puts(version)
           f.puts(sha)
           f.write(contents)
-          f.lock(File::LOCK_UN)
+          f.flock(File::LOCK_UN)
         end
       rescue Errno::EACCES
         #pass
